@@ -201,6 +201,78 @@
             font-family: 'Orbitron', sans-serif;
         }
 
+        /* Popup styles */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            backdrop-filter: blur(5px);
+        }
+
+        .popup-content {
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #ff8c00;
+            border-radius: 10px;
+            padding: 2rem;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 0 20px rgba(255, 140, 0, 0.3);
+            animation: glow 2s infinite alternate;
+        }
+
+        .popup-title {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: #ff8c00;
+            text-shadow: 0 0 10px #ff8c00;
+        }
+
+        .popup-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .popup-button {
+            background: transparent;
+            border: 2px solid #ff8c00;
+            color: #ff8c00;
+            padding: 0.5rem 1.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .popup-button:hover {
+            background: #ff8c00;
+            color: #000;
+            box-shadow: 0 0 15px #ff8c00;
+        }
+
+        @keyframes glow {
+            from {
+                box-shadow: 0 0 10px rgba(255, 140, 0, 0.3);
+            }
+
+            to {
+                box-shadow: 0 0 20px rgba(255, 140, 0, 0.6);
+            }
+        }
+
+        #background-music {
+            display: none;
+        }
+
         @media screen and (max-width: 768px) {
             .header {
                 padding: 1rem;
@@ -321,6 +393,18 @@
     </div>
 
     <div class="scan-line"></div>
+    <audio id="background-music" loop>
+        <source src="./assets/theme-music.mp3" type="audio/mpeg">
+    </audio>
+    <div class="popup-overlay" id="music-popup">
+        <div class="popup-content">
+            <h3 class="popup-title">How about some music?</h3>
+            <div class="popup-buttons">
+                <button class="popup-button" onclick="playMusic()">Yes, let's groove!</button>
+                <button class="popup-button" onclick="closePopup()">No, thanks</button>
+            </div>
+        </div>
+    </div>
 
     <script>
         const scene = new THREE.Scene();
@@ -338,17 +422,22 @@
         controls.autoRotateSpeed = 0.5;
 
         camera.position.z = 20;
+        camera.position.y = -20;
+        camera.lookAt(0, 0, 0);
 
         function adjustForMobile() {
             if (window.innerWidth <= 768) {
                 camera.position.z = 30;
+                camera.position.y = -30;
                 earth.scale.set(0.8, 0.8, 0.8);
                 wireframe.scale.set(0.8, 0.8, 0.8);
             } else {
                 camera.position.z = 20;
+                camera.position.y = -20;
                 earth.scale.set(1, 1, 1);
                 wireframe.scale.set(1, 1, 1);
             }
+            camera.lookAt(0, 0, 0);
             camera.updateProjectionMatrix();
         }
 
@@ -525,6 +614,41 @@
                 digitalNumbers.style.zIndex = '1001';
             });
         });
+
+        // Music popup functions
+        function playMusic() {
+            const music = document.getElementById('background-music');
+            music.play();
+            closePopup();
+        }
+
+        function closePopup() {
+            const popup = document.getElementById('music-popup');
+            popup.classList.remove('active');
+            setTimeout(() => {
+                popup.style.display = 'none';
+            }, 300); // Wait for fade out animation
+        }
+
+        // Check if music was already played
+        window.addEventListener('load', function () {
+            const music = document.getElementById('background-music');
+            if (!localStorage.getItem('musicPlayed')) {
+                const popup = document.getElementById('music-popup');
+                popup.style.display = 'flex';
+                // Trigger reflow
+                void popup.offsetWidth;
+                popup.classList.add('active');
+            }
+        });
+
+        // Save music preference
+        function playMusic() {
+            const music = document.getElementById('background-music');
+            music.play();
+            localStorage.setItem('musicPlayed', 'true');
+            closePopup();
+        }
     </script>
 </body>
 
