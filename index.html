@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" sizes="16x16" href="./assets/favicon.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+    <title>Reseter Space</title>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.137.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.137.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.137.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Orbitron', sans-serif;
+            color: #ff8c00;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&display=swap');
+
+        body {
+            background-color: #000;
+            overflow: hidden;
+        }
+
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+
+        .content {
+            position: absolute;
+            top: 0;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #ff8c00;
+            text-shadow: 0 0 10px #ff8c00;
+            pointer-events: none;
+            padding: 0 20px;
+            text-align: center;
+        }
+
+        .static-title {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+            letter-spacing: 0.5rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            text-shadow: 0 0 10px #ff8c00, 0 0 20px #ff8c00;
+            color: #ff8c00;
+            border-bottom: 2px solid #ff8c00;
+            padding-bottom: 10px;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        h2 {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            opacity: 0.8;
+            letter-spacing: 0.2rem;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .hacking-text {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            opacity: 0.7;
+            text-align: center;
+            max-width: 800px;
+            margin-bottom: 2rem;
+        }
+
+        .hacking-text a {
+            pointer-events: auto;
+            text-decoration: underline;
+            color: #ff8c00;
+            transition: all 0.3s ease;
+        }
+
+        .hacking-text a:hover {
+            color: #fff;
+            text-shadow: 0 0 10px #ff8c00, 0 0 15px #ff8c00;
+        }
+
+        .digital-numbers {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            opacity: 0.8;
+            text-align: right;
+            z-index: 1001;
+            transition: z-index 0.3s ease;
+        }
+
+        .scan-line {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            background: linear-gradient(to bottom,
+                    rgba(255, 140, 0, 0) 0%,
+                    rgba(255, 140, 0, 0.1) 50%,
+                    rgba(255, 140, 0, 0) 100%);
+            opacity: 0.1;
+            animation: scan 8s linear infinite;
+            pointer-events: none;
+        }
+
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            background: transparent;
+            backdrop-filter: none;
+            border-bottom: none;
+        }
+
+        .header-section {
+            display: flex;
+            align-items: center;
+        }
+
+        .header-left {
+            margin-right: auto;
+            display: flex;
+            align-items: center;
+        }
+
+        .header-center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+        }
+
+        .header-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo {
+            height: 40px;
+            width: auto;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-menu a {
+            color: #ff8c00;
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            pointer-events: auto;
+            padding: 0.5rem 1rem;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .nav-menu a:hover {
+            color: #fff;
+            text-shadow: 0 0 10px #ff8c00;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: #ff8c00;
+            font-size: 1.5rem;
+            cursor: pointer;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        @media screen and (max-width: 768px) {
+            .header {
+                padding: 1rem;
+            }
+
+            .header-center {
+                flex: unset;
+            }
+
+            .nav-menu {
+                position: fixed;
+                top: 70px;
+                left: -100%;
+                width: 100%;
+                height: calc(100vh - 70px);
+                background: rgba(0, 0, 0, 0.95);
+                flex-direction: column;
+                align-items: center;
+                padding: 2rem 0;
+                transition: 0.3s;
+                gap: 2rem;
+                z-index: 1002;
+            }
+
+            .nav-menu.active {
+                left: 0;
+            }
+
+            .nav-menu.active~.digital-numbers {
+                z-index: 999;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .logo {
+                height: 30px;
+            }
+
+            .digital-numbers {
+                top: 70px;
+                right: 10px;
+                font-size: 0.8rem;
+                background-color: rgba(0, 0, 0, 0.7);
+                padding: 5px 10px;
+                border-radius: 4px;
+                border: 1px solid rgba(255, 140, 0, 0.3);
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .static-title {
+                font-size: 2rem;
+                letter-spacing: 0.2rem;
+            }
+
+            h2 {
+                font-size: 1.2rem;
+            }
+
+            .hacking-text {
+                font-size: 0.8rem;
+            }
+
+            .digital-numbers {
+                width: auto;
+                max-width: 90%;
+                right: 5px;
+                font-size: 0.7rem;
+                padding: 4px 8px;
+            }
+        }
+
+        @keyframes scan {
+            0% {
+                top: -100px;
+            }
+
+            100% {
+                top: 100vh;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="header-left">
+            <img src="./assets/removedbg-logo.png" alt="Reseter Space Logo" class="logo">
+        </div>
+        <div class="header-center">
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="#home">MFC (Coming Soon)</a></li>
+                    <li><a href="#about">TTS Extension (Coming Soon)</a></li>
+                    <li><a href="#services">GenAI API (Coming Soon)</a></li>
+                </ul>
+            </nav>
+        </div>
+        <div class="header-right">
+            <button class="mobile-menu-btn">☰</button>
+        </div>
+    </header>
+
+    <div class="content">
+        <div class="static-title">RESETER SPACE</div>
+        <h2>OUR CREATIVE SPACE</h2>
+        <div class="hacking-text">
+            Make your service with us! Contact us now at <a
+                href="mailto:contact@reseter.space">contact@reseter.space</a>
+        </div>
+    </div>
+
+    <div class="digital-numbers">
+        <div id="coordinates">X: 0.0000 Y: 0.0000 Z: 0.0000</div>
+        <div id="timestamp">00:00:00.000</div>
+    </div>
+
+    <div class="scan-line"></div>
+
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.body.appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.enableZoom = false;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 0.5;
+
+        camera.position.z = 20;
+
+        function adjustForMobile() {
+            if (window.innerWidth <= 768) {
+                camera.position.z = 30;
+                earth.scale.set(0.8, 0.8, 0.8);
+                wireframe.scale.set(0.8, 0.8, 0.8);
+            } else {
+                camera.position.z = 20;
+                earth.scale.set(1, 1, 1);
+                wireframe.scale.set(1, 1, 1);
+            }
+            camera.updateProjectionMatrix();
+        }
+
+        const ambientLight = new THREE.AmbientLight(0x404040, 1);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xff8c00, 1);
+        directionalLight.position.set(1, 1, 1);
+        scene.add(directionalLight);
+
+        const pointLight = new THREE.PointLight(0xff8c00, 1);
+        pointLight.position.set(5, 5, 5);
+        scene.add(pointLight);
+
+        const earthGeometry = new THREE.SphereGeometry(5, 64, 64);
+        const earthTexture = new THREE.TextureLoader().load('https://threejs.org/examples/textures/land_ocean_ice_cloud_2048.jpg');
+        const earthBumpMap = new THREE.TextureLoader().load('https://threejs.org/examples/textures/earth_normal_2048.jpg');
+        const earthMaterial = new THREE.MeshPhongMaterial({
+            map: earthTexture,
+            bumpMap: earthBumpMap,
+            bumpScale: 0.05,
+            shininess: 5,
+            emissive: new THREE.Color(0xff8c00),
+            emissiveIntensity: 0.1
+        });
+        const earth = new THREE.Mesh(earthGeometry, earthMaterial);
+        scene.add(earth);
+
+        const wireGeometry = new THREE.SphereGeometry(5.1, 32, 32);
+        const wireMaterial = new THREE.MeshBasicMaterial({
+            color: 0xff8c00,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.1
+        });
+        const wireframe = new THREE.Mesh(wireGeometry, wireMaterial);
+        scene.add(wireframe);
+
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCount = 5000;
+        const posArray = new Float32Array(particlesCount * 3);
+
+        for (let i = 0; i < particlesCount * 3; i++) {
+            posArray[i] = (Math.random() - 0.5) * 100;
+        }
+
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        const particleMaterial = new THREE.PointsMaterial({
+            size: 0.1,
+            color: 0xff8c00,
+            transparent: true,
+            opacity: 0.8
+        });
+        const particleMesh = new THREE.Points(particlesGeometry, particleMaterial);
+        scene.add(particleMesh);
+
+        const gridHelper = new THREE.GridHelper(100, 100, 0xff8c00, 0xff8c00);
+        gridHelper.position.y = -10;
+        gridHelper.material.opacity = 0.1;
+        gridHelper.material.transparent = true;
+        scene.add(gridHelper);
+
+        for (let i = 0; i < 50; i++) {
+            const geometry = new THREE.BufferGeometry();
+            const material = new THREE.LineBasicMaterial({
+                color: 0xff8c00,
+                transparent: true,
+                opacity: Math.random() * 0.5
+            });
+
+            const points = [];
+            const startPoint = new THREE.Vector3(
+                (Math.random() - 0.5) * 100,
+                (Math.random() - 0.5) * 100,
+                (Math.random() - 0.5) * 100
+            );
+            points.push(startPoint);
+
+            const segments = Math.floor(Math.random() * 5) + 2;
+            for (let j = 0; j < segments; j++) {
+                points.push(new THREE.Vector3(
+                    startPoint.x + (Math.random() - 0.5) * 20,
+                    startPoint.y + (Math.random() - 0.5) * 20,
+                    startPoint.z + (Math.random() - 0.5) * 20
+                ));
+            }
+
+            geometry.setFromPoints(points);
+            const line = new THREE.Line(geometry, material);
+            scene.add(line);
+        }
+
+        function updateDigitalNumbers() {
+            document.getElementById('coordinates').textContent =
+                `X: ${camera.position.x.toFixed(4)} Y: ${camera.position.y.toFixed(4)} Z: ${camera.position.z.toFixed(4)}`;
+
+            const now = new Date();
+            document.getElementById('timestamp').textContent =
+                `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}.${now.getMilliseconds().toString().padStart(3, '0')}`;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            earth.rotation.y += 0.001;
+            wireframe.rotation.y += 0.001;
+            particleMesh.rotation.y += 0.0005;
+
+            updateDigitalNumbers();
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            adjustForMobile();
+        });
+
+        document.addEventListener('mousemove', (event) => {
+            if (window.innerWidth > 768) {
+                const mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+                const mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+
+                gsap.to(scene.rotation, {
+                    x: mouseY * 0.1,
+                    y: mouseX * 0.1,
+                    duration: 1
+                });
+            }
+        });
+
+        document.addEventListener('touchmove', (event) => {
+            if (event.touches.length === 1) {
+                const touchX = (event.touches[0].clientX / window.innerWidth) * 2 - 1;
+                const touchY = -(event.touches[0].clientY / window.innerHeight) * 2 + 1;
+
+                gsap.to(scene.rotation, {
+                    x: touchY * 0.05,
+                    y: touchX * 0.05,
+                    duration: 1
+                });
+            }
+            event.preventDefault();
+        }, { passive: false });
+
+        adjustForMobile();
+        animate();
+
+        const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+        const navMenu = document.querySelector('.nav-menu');
+        const digitalNumbers = document.querySelector('.digital-numbers');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+            if (navMenu.classList.contains('active')) {
+                digitalNumbers.style.zIndex = '999';
+            } else {
+                digitalNumbers.style.zIndex = '1001';
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.nav-menu') && !e.target.closest('.mobile-menu-btn')) {
+                navMenu.classList.remove('active');
+                digitalNumbers.style.zIndex = '1001';
+            }
+        });
+
+        document.querySelectorAll('.nav-menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                navMenu.classList.remove('active');
+                digitalNumbers.style.zIndex = '1001';
+            });
+        });
+    </script>
+</body>
+
+</html>
